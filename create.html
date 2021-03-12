@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vue演習</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+    <!--fontawsome-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+    <!--bootstamps-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <div id='app'>
+            <!--input-->
+            <div class="bg-light contents">
+                <div class="form-group">
+                    <label for="ja" class="text-muted">日本語</label>
+                    <input type="text" id="ja" placeholder="日本語を入力してください" class="form-control" v-model="nextWord.ja">
+                </div>
+                <div class="form-group">
+                    <label for="en" class="text-muted">英語</label>
+                    <input type="text" id="en" placeholder="英語を入力してください" class="form-control" v-model="nextWord.en">
+                </div>
+
+                <button class="btn btn-primary" @click="addWord">追加する</button>
+            </div>
+
+        <form action="" name="wordbook">
+            <!--list-->
+            <div class="">
+                <table class="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">id</th>
+                        <th scope="col">日本語</th>
+                        <th scope="col">英語</th>
+                        <th scope="col">オプション</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(word, index) in wordList">
+                          <th scope="col">{{index + 1}}</th>
+                          <td>
+                              <input type="text" v-if="word.wordEditMode" v-model="word.ja" class="form-control">
+                              <p v-else>{{word.ja}}</p>
+                          </td>
+                          <td>
+                            <input type="text" v-if="word.wordEditMode" v-model="word.en" class="form-control">
+                            <p v-else>{{word.en}}</p>
+                          </td>
+                          <td>
+                              <a class="text-info" v-if="word.wordEditMode" @click="turnOnFalseWordEditMode(word)">完了</a>
+                              <a class="text-info" v-else @click="turnOnTrueWordEditMode(word)">編集</a>
+                              <a class="text-danger" @click="deleteWord(index)">削除</a>
+                          </td>
+                          <input type="hidden" name="wordList[][ja]" :value="word.ja">
+                          <input type="hidden" name="wordList[][en]" :value="word.en">
+                      </tr>
+                    </tbody>
+                </table>
+
+                <button type="button" @click="checkSubmit" class="btn btn-primary">単語帳を作成</button>
+            </div>
+        </form>
+    </div>
+
+</body>
+
+    <script>
+      new Vue({
+          el: "#app",
+          data:{
+            nextWord :{
+                "ja": "",
+                "en": ""
+            },
+            wordList :[]
+          },
+          computeds:{
+              
+          },
+          methods: {
+              addWord(){
+                  if(this.nextWord.ja !== "" && this.nextWord.en){
+                      this.wordList.unshift({
+                          "ja": this.nextWord.ja,
+                          "en": this.nextWord.en,
+                          "wordEditMode": false
+                      })
+                      this.nextWord.ja = "";
+                      this.nextWord.en = "";
+                  }
+              },
+
+              turnOnFalseWordEditMode(word){
+                word.wordEditMode = false;
+                  const targetWord = event.target.closest('tr');
+                  this.$nextTick(() => {
+                    targetWord.querySelector('input').focus();
+                  })
+              },
+
+              turnOnTrueWordEditMode(word){
+                  for (let i = 0; i < this.wordList.length; i++) {
+                      this.wordList[i].wordEditMode = false;
+                  }
+                  word.wordEditMode = true;
+                  const targetWord = event.target.closest('tr');
+                  this.$nextTick(() => {
+                    targetWord.querySelector('input').focus()
+                  })
+              },
+              checkSubmit(){
+                if (this.wordList.length <= 0 || this.wordList.length == null) {
+                    alert('少なくとも1つは入力してください')
+                    return
+                }else if(this.wordList.length > 20){
+                    alert('上限オーバー(20単語までにしてください)')
+                    return
+                }
+
+                for (let i = 0; i < this.wordList.length; i++) {
+                    if (this.wordList[i].ja === "" || this.wordList[i].en === "") {
+                        alert('未入力があります')
+                        return
+                    }
+                }
+                wordbook.submit();
+              },
+              deleteWord(index){
+                  this.wordList.splice(index, 1)
+              },
+          }
+      })
+    </script>
+
+    <style>
+        #app{
+            margin: 30px;
+        }
+        .contents{
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .word{
+            padding: 20px;
+            margin-bottom: 5px;
+        }
+    </style>
+
+</html>
