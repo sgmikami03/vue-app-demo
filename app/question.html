@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vue演習</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+    <!--fontawsome-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+    <!--bootstamps-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <div id='app'>
+        <div class="offset-3 col-6">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="text-muted">第{{ number + 1 }}問 <small>{{ isEnglishToJapanese ? '英和' : '和英'}}</small></p>
+                    <br>
+                    <p>{{ isEnglishToJapanese ? wordList[number].en : wordList[number].ja }}</p>
+                    <hr>
+
+                    <div v-for="n in 4">
+                        <button 
+                        @click="check(number, n-1)" type="button" 
+                        v-bind:class="{'btn-danger': !correct_choise[n-1], 'btn-primary': correct_choise[n-1], 'btn-light': !isResults}" 
+                        class="btn btn-lg btn-block text-left">
+                            {{ isEnglishToJapanese ? wordList[questions[number][n-1]].ja : wordList[questions[number][n-1]].en }}
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+    <script>
+      new Vue({
+          el: "#app",
+          data:{
+            wordList :[
+                {ja: 'いちご', en: 'strawberry'},
+                {ja: '赤', en: 'red'},
+                {ja: '青', en: 'blue'},
+                {ja: 'ペン', en: 'pen'},
+                {ja: 'りんご', en: 'apple'},
+                {ja: '男', en: 'men'},
+                {ja: '女', en: 'women'},
+                {ja: '単語', en: 'word'},
+                {ja: '単語帳', en: 'wordbook'},
+                {ja: 'ノート', en: 'notebook'},
+            ],
+            dummyWordList: [
+                {ja: 'ダミー1', en: 'dummy1'},
+                {ja: 'ダミー2', en: 'dummy2'},
+                {ja: 'ダミー3', en: 'dummy3'},
+                {ja: 'ダミー4', en: 'dummy4'},
+                {ja: 'ダミー5', en: 'dummy5'},
+            ],
+            questions: [],
+            answers: [],
+            corrects: [],
+            correct_choise: [],
+            number: 0,
+            numberOfQuestions: 0,//すぐ変更
+            isResults: false,
+            isEnglishToJapanese: true,
+          },
+          created() {
+              this.numberOfQuestions = this.wordList.length;
+
+              if (this.numberOfQuestions < 10) {
+                  var arrayDummy = [];
+                  for (let i = 0; i < 15 - this.numberOfQuestions; i++) {
+                    while(true){
+                        var num = intRandom(0, 5 - 1);
+                        if(!arrayDummy.includes(num)){
+                            arrayDummy.push(num);
+                            break;
+                        }
+                    }
+                    this.wordList.push(this.dummyWordList[num]);
+                  }
+              }
+
+              for (let i = 0; i < this.wordList.length; i++) {
+                this.questions[i] = [];
+                for(k = 0; k < 3; k++){
+                  while(true){
+                    var num = intRandom(0, this.wordList.length - 1);
+                    if(!this.questions[i].includes(num) && num != i){
+                      this.questions[i].push(num);
+                      break;
+                    }
+                  }
+                }
+                var num_answaer = intRandom(0, 3);
+                this.questions[i].splice(num_answaer, 0, i);
+                this.answers.push(num_answaer);
+              }
+              this.wordList.push({ja: '太鼓', en: 'durum'});
+
+              function intRandom(min, max){
+                return Math.floor( Math.random() * (max - min + 1)) + min;
+              }
+          },
+          computeds:{
+              
+          },
+          methods: {
+                check: function(number, choice){
+                    if (this.isResults) {
+                        return;
+                    }
+                    
+                    if (this.answers[number] == choice) {
+                        this.corrects[number] = true;
+                    }else{
+                        this.corrects[number] = true;
+                    }
+
+                    this.showResult(number);
+                    setTimeout(this.showNextWord,500);
+                },
+                showResult: function(number){
+                    this.correct_choise = [];
+                    this.isResults = true;
+                    for (let i = 0; i < 4; i++) {
+                        this.correct_choise.push((this.answers[number] == i)? true: false);
+                    }
+                },
+                showNextWord: function() {
+                    this.number++;
+                    this.isResults = false;
+                    if (this.number == this.numberOfQuestions) {
+                        alert('終了');
+                    }
+                }
+          }
+      })
+    </script>
+
+    <style>
+        #app{
+            margin: 30px;
+        }
+        .contents{
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .word{
+            padding: 20px;
+            margin-bottom: 5px;
+        }
+        .btn-correct{
+            color: #6c757d;
+            background-color: #c8defa;
+        }
+        .btn-correct:hover{
+            color: #6c757d;
+            background-color: #adc0d9;
+        }
+        .btn-incorrect{
+            color: #6c757d;
+            background-color: #f5c7c4;
+        }
+        .btn-incorrect:hover{
+            color: #6c757d;
+            background-color: #e6bab8;
+        }
+    </style>
+
+</html>
